@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Maps</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      text-align: center;
+    }
+    h1 { margin-top: 20px; }
+    .search-box {
+      margin: 20px auto;
+      width: 320px;
+      position: relative;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 15px;
+      border-radius: 20px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+    ul.suggestions {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      background: #222;
+      border-radius: 0 0 20px 20px;
+      max-height: 150px;
+      overflow-y: auto;
+      position: absolute;
+      width: 100%;
+      z-index: 100;
+    }
+    ul.suggestions li {
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+    ul.suggestions li:hover {
+      background: #444;
+    }
+    .map-placeholder {
+      margin: 30px auto;
+      width: 80%;
+      height: 400px;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 2px dashed #555;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 20px;
+    }
+    footer {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <h1>My Maps</h1>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Saya ingin ke..." autocomplete="off" />
+    <ul id="suggestions" class="suggestions" hidden></ul>
+  </div>
+  <div class="map-placeholder" id="mapPlaceholder">
+    <span>Silakan cari provinsi Indonesia.</span>
+  </div>
+  <footer>© My Maps. By BX company</footer>
+  <script>
+    const provinsiList = [
+      { name: "Aceh", coords: "5.5500,95.3200" },
+      { name: "Bali", coords: "-8.3405,115.0920" },
+      { name: "Banten", coords: "-6.1200,106.1500" },
+      { name: "Bengkulu", coords: "-3.8000,102.3000" },
+      { name: "Gorontalo", coords: "0.5400,123.0600" },
+      { name: "Jakarta", coords: "-6.2000,106.8166" },
+      { name: "Jambi", coords: "-1.6000,103.6000" },
+      { name: "Jawa Barat", coords: "-6.9147,107.6098" },
+      { name: "Jawa Tengah", coords: "-7.1500,110.1400" },
+      { name: "Jawa Timur", coords: "-7.2504,112.7688" },
+      { name: "Kalimantan Barat", coords: "-0.0333,109.3333" },
+      { name: "Kalimantan Selatan", coords: "-3.3167,114.5833" },
+      { name: "Kalimantan Tengah", coords: "-2.2167,113.9167" },
+      { name: "Kalimantan Timur", coords: "-0.5000,117.1500" },
+      { name: "Kalimantan Utara", coords: "3.5000,116.7333" },
+      { name: "Kepulauan Bangka Belitung", coords: "-2.5000,106.0000" },
+      { name: "Kepulauan Riau", coords: "0.5000,104.0000" },
+      { name: "Lampung", coords: "-5.4500,105.2667" },
+      { name: "Maluku", coords: "-3.3000,128.1000" },
+      { name: "Maluku Utara", coords: "0.7833,127.3333" },
+      { name: "Nusa Tenggara Barat", coords: "-8.5833,116.2833" },
+      { name: "Nusa Tenggara Timur", coords: "-10.1667,123.5833" },
+      { name: "Papua", coords: "-4.2667,138.0833" },
+      { name: "Papua Barat", coords: "-1.4167,133.0667" },
+      { name: "Riau", coords: "0.5333,101.4500" },
+      { name: "Sulawesi Barat", coords: "-2.9000,119.8500" },
+      { name: "Sulawesi Selatan", coords: "-5.1475,119.4327" },
+      { name: "Sulawesi Tengah", coords: "-0.9039,119.8700" },
+      { name: "Sulawesi Tenggara", coords: "-4.0433,122.4978" },
+      { name: "Sulawesi Utara", coords: "1.4333,124.9000" },
+      { name: "Sumatera Barat", coords: "-0.9500,100.3500" },
+      { name: "Sumatera Selatan", coords: "-3.0000,104.8000" },
+      { name: "Sumatera Utara", coords: "2.9167,99.0667" },
+      { name: "Yogyakarta", coords: "-7.7972,110.3688" }
+    ];
+    const searchInput = document.getElementById("searchInput");
+    const suggestions = document.getElementById("suggestions");
+    const mapBox = document.getElementById("mapPlaceholder");
+    searchInput.addEventListener("input", () => {
+      const val = searchInput.value.trim().toLowerCase();
+      if (!val) {
+        suggestions.hidden = true;
+        return;
+      }
+      const filtered = provinsiList.filter(p =>
+        p.name.toLowerCase().startsWith(val)
+      );
+      if (filtered.length === 0) {
+        suggestions.hidden = true;
+        return;
+      }
+      suggestions.innerHTML = filtered.map(p => `<li>${p.name}</li>`).join("");
+      suggestions.hidden = false;
+    });
+    suggestions.addEventListener("click", (e) => {
+      if (e.target.tagName.toLowerCase() === "li") {
+        const selectedName = e.target.textContent;
+        searchInput.value = selectedName;
+        suggestions.hidden = true;
+        const prov = provinsiList.find(p => p.name === selectedName);
+        if (prov) {
+          mapBox.innerHTML = `
+            <iframe
+              loading="lazy"
+              src="https://www.google.com/maps?q=${encodeURIComponent(prov.coords)}&output=embed"
+              allowfullscreen
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+          `;
+        }
+      }
+    });
+    document.addEventListener("click", (e) => {
+      if (!searchInput.contains(e.target) && !suggestions.contains(e.target)) {
+        suggestions.hidden = true;
+      }
+    });
+  </script>
+</body>
+</html>
